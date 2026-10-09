@@ -1,4 +1,4 @@
-# **linux.embed.dir.to.bash.script**  
+# **dir2sh**  
 
 **Embed directory content into a bash script (stores directory content inside a shell script in a compressed format)**
 
