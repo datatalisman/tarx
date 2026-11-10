@@ -1,0 +1,113 @@
+#!/bin/bash
+
+#------------------------------------------------------------------#
+# UTILITY DETAILS | Convert a directory to a self-extracting       #
+#                 | transportable script (.tar.sh)                 #
+#------------------------------------------------------------------#
+#          AUTHOR | VIKI (A) V NATARAJAN                           #
+#------------------------------------------------------------------#
+#         CONTACT | WWW.VIKI.DESIGN                                #
+#------------------------------------------------------------------#
+
+usage() {
+    echo "Usage: tarx <directory>"
+    echo "  tarx test   -> creates test.tar.sh in the current directory"
+    echo "  ./test.tar.sh [destination]   -> extracts test/ (never overwrites)"
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    usage
+    exit 0
+fi
+
+if [ $# -ne 1 ]; then
+    echo "[ error ] exactly one directory name is required"
+    [ "$1" = "*" ] || [ $# -gt 1 ] && echo "[ tips  ] wildcards are not supported, give one directory name"
+    usage
+    exit 1
+fi
+
+DIR_ARG="$1"
+
+if [ ! -d "$DIR_ARG" ]; then
+    echo "[ error ] not a directory: $DIR_ARG"
+    exit 1
+fi
+
+# resolve to absolute path, then split into parent + name
+DIR_ABS="$(cd "$DIR_ARG" && pwd -P)" || exit 1
+CWD_ABS="$(pwd -P)"
+DIR_NAME="$(basename "$DIR_ABS")"
+DIR_PARENT="$(dirname "$DIR_ABS")"
+
+if [ "$DIR_ABS" = "/" ]; then
+    echo "[ error ] refusing to pack /"
+    exit 1
+fi
+
+# the output file is written to the current directory; it must not end up inside the packed directory
+case "$CWD_ABS/" in
+    "$DIR_ABS"/*)
+        echo "[ error ] you are inside the directory being packed ($DIR_ABS)"
+        echo "[ tips  ] go to its parent directory and run: tarx $DIR_NAME"
+        exit 1
+        ;;
+esac
+
+OUTPUT="${DIR_NAME}.tar.sh"
+
+if [ -e "$OUTPUT" ] || [ -L "$OUTPUT" ]; then
+    echo "[ error ] $OUTPUT already exists in this directory. Aborting, nothing was overwritten."
+    echo "[ tips  ] rename or remove the existing file first"
+    exit 1
+fi
+
+# build in a temp file first, move into place only when complete
+TMP_OUT="$(mktemp "${TMPDIR:-/tmp}/tarx.XXXXXX")" || exit 1
+trap 'rm -f "$TMP_OUT"' EXIT
+
+echo "[ status ] Packing directory : $DIR_ABS"
+
+{
+    echo '#!/bin/bash'
+    printf 'TOP=%q\n' "$DIR_NAME"
+    cat <<'STUB'
+# Self-extracting archive created by tarx
+# Usage: ./this_script.tar.sh [destination_directory]
+DEST="${1:-.}"
+if [ -e "$DEST/$TOP" ] || [ -L "$DEST/$TOP" ]; then
+    echo "[ error ] '$TOP' already exists in '$DEST'. Aborting, nothing was extracted or overwritten."
+    exit 1
+fi
+START_LINE=$(awk '/^__TARX_PAYLOAD__$/ { print NR + 1; exit }' "$0")
+mkdir -p "$DEST" || exit 1
+echo "[ status ] Extracting '$TOP' to '$DEST'"
+# -k: never overwrite existing files (extra safety)
+if tail -n +"$START_LINE" "$0" | tar -xzk -C "$DEST"; then
+    echo "[ status ] Extraction completed"
+    exit 0
+else
+    echo "[ error ] Extraction failed"
+    exit 1
+fi
+# Everything after the next line is binary data. Do not edit below.
+__TARX_PAYLOAD__
+STUB
+} > "$TMP_OUT"
+
+if ! tar -czf - -C "$DIR_PARENT" "$DIR_NAME" >> "$TMP_OUT"; then
+    echo "[ error ] tar failed"
+    exit 1
+fi
+
+chmod +x "$TMP_OUT"
+
+# re-check right before moving; mv -n never overwrites
+if [ -e "$OUTPUT" ] || [ -L "$OUTPUT" ]; then
+    echo "[ error ] $OUTPUT appeared meanwhile. Aborting, nothing was overwritten."
+    exit 1
+fi
+mv -n "$TMP_OUT" "$OUTPUT" || { echo "[ error ] cannot write $OUTPUT"; exit 1; }
+trap - EXIT
+
+echo "[ status ] Created : $OUTPUT"

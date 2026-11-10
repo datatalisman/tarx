@@ -1,72 +1,73 @@
-# **dir2sh**  
+# tarx
 
-**Embed directory content into a bash script (stores directory content inside a shell script in a compressed format)**
+**Turn a directory into one self-extracting script (`NAME.tar.sh`).**
 
+`tarx` packs a directory into a compressed tar archive and embeds it in a Bash script. Copy that single file to another Linux/macOS machine, run it, and the directory is recreated. Useful for installers: data and instructions travel in one executable file.
 
-This Linux/macOS utility embeds the contents of a directory into a shell script in a compressed format. The resulting script can be transferred to another system, and by simply executing it, the directory is recreated. This approach is particularly useful when a single executable file (such as an installer) needs to be transported, which contains both the data and the installation instructions in one file.
+Requirements: `bash`, `tar`, `gzip`, `awk`, `tail` (all standard on Linux/macOS).
 
----
-
-## **How it Works**
-
-1. The input directory (let's call it `IN`) is converted into a tar.gz file (`IN.tar.gz`).
-2. The tar.gz file (`IN.tar.gz`) is then embedded into a Bash script (`OUT.tar.sh`) with a self-extraction feature.
-3. The self-extractable tar script (`OUT.tar.sh`) can be transferred to any Linux/macOS computer/device, where it can be extracted.
-
----
-
-## **How to Extract the Directory (IN) from the Tar Script (OUT.tar.sh)**
-
-1. Execute the following command:
-
-   ```bash
-   ./OUT.tar.sh
-   ```
-
-2. The directory (`IN`) will be extracted in the current working directory.
-
----
-
-## **Installation**
+## Usage
 
 ```bash
-sudo ./install.sh  # If you have root permissions, you can execute ./install.sh directly.
+tarx <directory>
 ```
-
----
-
-## **Uninstallation**
 
 ```bash
-sudo ./uninstall.sh  # If you have root permissions, you can execute ./uninstall.sh directly.
+tarx test        # creates test.tar.sh in the current directory
 ```
 
----
+- The output is always named `<directory name>.tar.sh` and is written to the current directory.
+- `tarx .`, `tarx` without arguments and wildcards are not supported. Run `tarx` from the parent directory, so the new `.tar.sh` never ends up inside the directory it contains.
+- If `test.tar.sh` already exists, `tarx` aborts. It never overwrites.
 
-## **Usage**
+## Extract
 
 ```bash
-$ dir2sh <directory_name> <output_script_name>
+./test.tar.sh              # extracts ./test in the current directory
+./test.tar.sh /some/path   # extracts into /some/path
 ```
 
-### **Example 1**
+- If a `test` directory (or file) already exists at the destination, the script aborts with a message and extracts nothing. It never overwrites your data.
+
+### Install
 
 ```bash
-$ dir2sh /home/test test.tar.sh
+chmod +x install.sh
+./install.sh
 ```
 
-This command compresses the directory `/home/test` into `test.tar.sh`.
+The installer adds `~/.local/bin` to your `PATH` automatically if it is not already present. It updates `~/.bashrc` (and `~/.zshrc` when zsh is your shell) without duplicating existing entries.
 
-### **Example 2**
+Open a new terminal after installation if `~/.local/bin` was added to your `PATH`.
+
+### Uninstall
 
 ```bash
-$ dir2sh "*" curr_dir.tar.sh
+chmod +x uninstall.sh
+./uninstall.sh
 ```
 
-This command compresses all contents of the current directory into `curr_dir.tar.sh`.
+The uninstaller removes only `tarx`. Your `PATH` configuration remains unchanged.
 
----
+## Unit Tests (UT)
 
-## **Use Case**
+Clone the repository and navigate to the UT folder.
 
-This utility is ideal for transporting directories as a self-extractable package/script between Linux/macOS systems. It is especially useful for scenarios where you need to distribute a single executable file (like an installer) that contains both the data and the instructions for installation, allowing the user to extract and install the directory with just one command.
+```bash
+cd ut
+chmod +x test_tarx.sh
+./test_tarx.sh
+```
+
+The script runs the unit tests for `tarx`.
+
+## Changes from dir2sh
+
+- Renamed to `tarx`.
+- Output name is fixed: `<directory>.tar.sh`.
+- No current-directory mode; one explicit directory name only.
+- Never overwrites: neither when packing nor when extracting.
+- Archive stores only the directory name, not its full path.
+- No fixed `/tmp/archive.tar.gz` file; output is built safely and moved into place.
+- Installs per user into `~/.local/bin`, no sudo.
+- Optional destination directory when extracting.

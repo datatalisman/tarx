@@ -1,47 +1,17 @@
-#! /bin/bash
-UTILITY_NAME="dir2sh"
+#!/bin/bash
+# Removes tarx from the current user's ~/.local/bin. No sudo needed.
 
-INSTALL_DIR="/usr/bin"
+UTILITY_NAME="tarx"
+INSTALL_DIR="$HOME/.local/bin"
 
-get_installation_directory(){
-    echo "[ status   ] Identifying Host System"
-    linux_system=`uname -srm | grep -i "linux"`
-    mac_system=`uname -srm | grep -i "darwin"`
+if [ ! -e "$INSTALL_DIR/$UTILITY_NAME" ]; then
+    echo "[ failure ] $UTILITY_NAME is not installed in $INSTALL_DIR"
+    exit 1
+fi
 
-    if [ ! -z "$linux_system" ]; then
-        echo "[ status ] Linux System "
-        INSTALL_DIR="/usr/bin"
-    fi
-
-    if [ ! -z "$mac_system" ]; then
-        echo "[ status ] Mac System"
-        INSTALL_DIR="/opt/local/bin/"
-    fi
-}
-
-install_util(){
-    chmod +x ./$UTILITY_NAME
-    #check sudo
-    cp ./$UTILITY_NAME $INSTALL_DIR
-}
-
-uninstall_util(){
-    #check sudo
-    rm -rf $INSTALL_DIR/$UTILITY_NAME
-}
-
-
-check_installation_status(){
-    if [ $1 -eq 0 ]; then
-        echo "[ success ] $UTILITY_NAME uninstall successful"
-    else
-        echo "[ failure ] $UTILITY_NAME uninstall failed"
-	echo "	-> [ case 1 ] You should have sudo or root access to uninstall this package"
-        echo "	-> [ case 2 ] $UTILITY_NAME may not be installed"
-    fi
-}
-
-get_installation_directory
-uninstall_util
-check_installation_status $?
-
+if rm -f "$INSTALL_DIR/$UTILITY_NAME"; then
+    echo "[ success ] $UTILITY_NAME uninstalled"
+else
+    echo "[ failure ] could not remove $INSTALL_DIR/$UTILITY_NAME"
+    exit 1
+fi
