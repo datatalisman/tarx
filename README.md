@@ -29,16 +29,36 @@ tarx test        # creates test.tar.sh in the current directory
 
 - If a `test` directory (or file) already exists at the destination, the script aborts with a message and extracts nothing. It never overwrites your data.
 
-### Install
+## Install
+
+### Option 1: Quick Install (Recommended)
+
+Install directly from GitHub without cloning the repository.
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/datatalisman/tarx/master/install.sh | bash
+```
+
+No sudo needed. `tarx` is installed to `~/.local/bin`.
+
+The installer adds `~/.local/bin` to your `PATH` automatically if it is not already present. It updates `~/.bashrc` (and `~/.zshrc` when zsh is your shell) without duplicating an existing entry.
+
+Open a new terminal after installation if `~/.local/bin` was added to your `PATH`.
+
+### Option 2: Clone and Install
+
+Clone the repository and run the installer locally.
+
+```bash
+git clone https://github.com/datatalisman/tarx.git
+cd tarx
 chmod +x install.sh
 ./install.sh
 ```
 
-The installer adds `~/.local/bin` to your `PATH` automatically if it is not already present. It updates `~/.bashrc` (and `~/.zshrc` when zsh is your shell) without duplicating existing entries.
+No sudo needed. `tarx` is installed to `~/.local/bin`.
 
-Open a new terminal after installation if `~/.local/bin` was added to your `PATH`.
+The installer automatically configures your PATH if necessary. Open a new terminal afterwards.
 
 ### Uninstall
 

@@ -8,11 +8,20 @@
 #------------------------------------------------------------------#
 #         CONTACT | WWW.VIKI.DESIGN                                #
 #------------------------------------------------------------------#
-
 usage() {
-    echo "Usage: tarx <directory>"
-    echo "  tarx test   -> creates test.tar.sh in the current directory"
-    echo "  ./test.tar.sh [destination]   -> extracts test/ (never overwrites)"
+    cat <<'EOF'
+
+Usage:
+
+    tarx <directory>
+
+Examples:
+  
+  tarx myfolder          Pack myfolder into an archive
+  
+  ./myfolder.tar.sh      Unpack the archive into the current directory
+  
+EOF
 }
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
@@ -21,6 +30,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 if [ $# -ne 1 ]; then
+    echo
     echo "[ error ] exactly one directory name is required"
     [ "$1" = "*" ] || [ $# -gt 1 ] && echo "[ tips  ] wildcards are not supported, give one directory name"
     usage
