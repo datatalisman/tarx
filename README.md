@@ -29,13 +29,22 @@ tarx test        # creates test.tar.sh in the current directory
 
 - If a `test` directory (or file) already exists at the destination, the script aborts with a message and extracts nothing. It never overwrites your data.
 
+
 ## Install
 
-### Option 1: Quick Install (Recommended)
+### Option 1: Homebrew (Recommended)
+
+Install using Homebrew on Linux or macOS.
+
+```
+brew install datatalisman/tap/tarx
+```
+
+### Option 2: Quick Install
 
 Install directly from GitHub without cloning the repository.
 
-```bash
+```
 curl -fsSL https://raw.githubusercontent.com/datatalisman/tarx/master/install.sh | bash
 ```
 
@@ -45,11 +54,11 @@ The installer adds `~/.local/bin` to your `PATH` automatically if it is not alre
 
 Open a new terminal after installation if `~/.local/bin` was added to your `PATH`.
 
-### Option 2: Clone and Install
+### Option 3: Clone and Install
 
 Clone the repository and run the installer locally.
 
-```bash
+```
 git clone https://github.com/datatalisman/tarx.git
 cd tarx
 chmod +x install.sh
@@ -62,12 +71,22 @@ The installer automatically configures your PATH if necessary. Open a new termin
 
 ### Uninstall
 
-```bash
+**Homebrew:**
+
+```
+brew uninstall tarx
+```
+
+**Manual installation:**
+
+```
 chmod +x uninstall.sh
 ./uninstall.sh
 ```
 
 The uninstaller removes only `tarx`. Your `PATH` configuration remains unchanged.
+
+
 
 ## Unit Tests (UT)
 
@@ -81,13 +100,3 @@ chmod +x test_tarx.sh
 
 The script runs the unit tests for `tarx`.
 
-## Changes from dir2sh
-
-- Renamed to `tarx`.
-- Output name is fixed: `<directory>.tar.sh`.
-- No current-directory mode; one explicit directory name only.
-- Never overwrites: neither when packing nor when extracting.
-- Archive stores only the directory name, not its full path.
-- No fixed `/tmp/archive.tar.gz` file; output is built safely and moved into place.
-- Installs per user into `~/.local/bin`, no sudo.
-- Optional destination directory when extracting.
